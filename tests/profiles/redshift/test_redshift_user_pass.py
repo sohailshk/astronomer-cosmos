@@ -30,6 +30,26 @@ def mock_redshift_conn():  # type: ignore
         yield conn
 
 
+@pytest.fixture()
+def mock_redshift_conn_custom_timeout():  # type: ignore
+    """
+    Sets the connection as an environment variable.
+    """
+    conn = Connection(
+        conn_id="my_redshift_connection",
+        conn_type="redshift",
+        host="my_host",
+        login="my_user",
+        password="my_password",
+        port=5439,
+        schema="my_database",
+        extra='{"timeout": 30}',
+    )
+
+    with patch("cosmos.profiles.base.BaseHook.get_connection", return_value=conn):
+        yield conn
+
+
 def test_connection_claiming() -> None:
     """
     Tests that the Redshift profile mapping claims the correct connection type.
@@ -87,6 +107,12 @@ def test_profile_mapping_selected(
         {"schema": "my_schema"},
     )
     assert isinstance(profile_mapping, RedshiftUserPasswordProfileMapping)
+
+
+def test_profile_mapping_keeps_custom_timeout(mock_redshift_conn_custom_timeout: Connection) -> None:
+    profile = RedshiftUserPasswordProfileMapping(mock_redshift_conn_custom_timeout.conn_id, {"schema": "my_schema"})
+    assert profile.profile["connect_timeout"] == 30
+    assert "timeout" not in profile.profile
 
 
 def test_profile_args(

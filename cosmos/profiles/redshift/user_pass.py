@@ -33,7 +33,7 @@ class RedshiftUserPasswordProfileMapping(BaseProfileMapping):
         "password": "password",
         "port": "port",
         "dbname": "schema",
-        "timeout": "extra.timeout",
+        "connect_timeout": "extra.timeout",
         "sslmode": "extra.sslmode",
         "region": "extra.region",
     }
